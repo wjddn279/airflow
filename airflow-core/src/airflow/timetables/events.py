@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 import pendulum
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.timetables.base import DagRunInfo, DataInterval, Timetable
 
 if TYPE_CHECKING:

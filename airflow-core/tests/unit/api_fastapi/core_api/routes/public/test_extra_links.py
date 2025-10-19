@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import pytest
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.common.dagbag import dag_bag_from_app
 from airflow.api_fastapi.core_api.datamodels.extra_links import ExtraLinkCollectionResponse
 from airflow.models.dagbag import DBDagBag

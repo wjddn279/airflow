@@ -39,7 +39,7 @@ import time_machine
 from sqlalchemy import func, select
 from uuid6 import uuid7
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.callbacks.callback_requests import DagCallbackRequest
 from airflow.dag_processing.bundles.manager import DagBundlesManager
 from airflow.dag_processing.manager import (

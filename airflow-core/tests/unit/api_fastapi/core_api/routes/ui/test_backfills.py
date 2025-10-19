@@ -20,7 +20,7 @@ from unittest import mock
 
 import pytest
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.models import DagModel
 from airflow.models.backfill import Backfill
 from airflow.utils.session import provide_session

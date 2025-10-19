@@ -31,7 +31,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import relationship
 from sqlalchemy_utils import UUIDType
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.models import Trigger
 from airflow.models.base import Base
 from airflow.serialization.serde import deserialize, serialize

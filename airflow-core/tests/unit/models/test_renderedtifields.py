@@ -30,7 +30,7 @@ import pytest
 from sqlalchemy import select
 
 from airflow import settings
-from airflow._shared.timezones.timezone import datetime
+from airflow._shared.timezones1.timezone import datetime
 from airflow.configuration import conf
 from airflow.models import DagRun, Variable
 from airflow.models.renderedtifields import RenderedTaskInstanceFields as RTIF

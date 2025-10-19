@@ -22,7 +22,7 @@ import os
 
 import pytest
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.exceptions import AirflowException
 from airflow.jobs.job import Job, run_job
 from airflow.listeners.listener import get_listener_manager

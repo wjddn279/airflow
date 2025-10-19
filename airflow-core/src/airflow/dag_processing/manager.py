@@ -45,7 +45,7 @@ from sqlalchemy.orm import load_only
 from tabulate import tabulate
 from uuid6 import uuid7
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.execution_api.app import InProcessExecutionAPI
 from airflow.configuration import conf
 from airflow.dag_processing.bundles.manager import DagBundlesManager
@@ -61,6 +61,7 @@ from airflow.models.db_callback_request import DbCallbackRequest
 from airflow.models.errors import ParseImportError
 from airflow.sdk import SecretCache
 from airflow.sdk.log import init_log_file, logging_processors
+from airflow.settings import engine
 from airflow.stats import Stats
 from airflow.traces.tracer import DebugTrace
 from airflow.utils.file import list_py_file_paths, might_contain_dag
@@ -337,6 +338,8 @@ class DagFileProcessorManager(LoggingMixin):
             loop_start_time = time.monotonic()
 
             self.heartbeat()
+
+            # self.log.debug("engine.pool in main process",engine.)
 
             self._kill_timed_out_processors()
 
@@ -892,6 +895,7 @@ class DagFileProcessorManager(LoggingMixin):
 
         callback_to_execute_for_file = self._callback_to_execute.pop(dag_file, [])
         logger, logger_filehandle = self._get_logger_for_dag_file(dag_file)
+
 
         return DagFileProcessorProcess.start(
             id=id,

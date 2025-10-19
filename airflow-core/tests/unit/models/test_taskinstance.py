@@ -34,7 +34,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.exceptions import (
     AirflowException,
     AirflowFailException,

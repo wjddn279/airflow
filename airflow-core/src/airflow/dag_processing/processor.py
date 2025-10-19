@@ -18,10 +18,13 @@ from __future__ import annotations
 
 import contextlib
 import importlib
+import logging
 import os
 import sys
+import time
 import traceback
 from collections.abc import Callable, Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, BinaryIO, ClassVar, Literal
 
@@ -123,6 +126,10 @@ ToDagProcessor = Annotated[
 ]
 
 
+def plog(msg):
+    now = datetime.now().isoformat()
+    print(f"[{now}], os[{os.getpid()}], {msg}")
+
 def _pre_import_airflow_modules(file_path: str, log: FilteringBoundLogger) -> None:
     """
     Pre-import Airflow modules found in the given file.
@@ -150,16 +157,28 @@ def _parse_file_entrypoint():
     from airflow.sdk.execution_time import comms, task_runner
 
     # Parse DAG file, send JSON back up!
+    plog(f"_parse_file_entrypoint running1 in os pid {os.getpid()}")
+    logging.warning(f"sub process running1 in os pid {os.getpid()}")
     comms_decoder = comms.CommsDecoder[ToDagProcessor, ToManager](
         body_decoder=TypeAdapter[ToDagProcessor](ToDagProcessor),
     )
+
+    plog(f"_parse_file_entrypoint running2 in os pid {os.getpid()}")
+    logging.warning(f"sub process running2 in os pid {os.getpid()}")
 
     msg = comms_decoder._get_response()
     if not isinstance(msg, DagFileParseRequest):
         raise RuntimeError(f"Required first message to be a DagFileParseRequest, it was {msg}")
 
+    plog(f"_parse_file_entrypoint running3 in os pid {os.getpid()}")
+    logging.warning(f"sub process running3 in os pid {os.getpid()}")
+
     task_runner.SUPERVISOR_COMMS = comms_decoder
     log = structlog.get_logger(logger_name="task")
+
+    plog(f"_parse_file_entrypoint running4 in os pid {os.getpid()}")
+    logging.warning(f"sub process running4 in os pid {os.getpid()}")
+
 
     # Put bundle root on sys.path if needed. This allows the dag bundle to add
     # code in util modules to be shared between files within the same bundle.
@@ -167,12 +186,22 @@ def _parse_file_entrypoint():
         sys.path.append(bundle_root)
 
     result = _parse_file(msg, log)
+
+    plog(f"_parse_file_entrypoint running5 in os pid {os.getpid()}")
+    logging.warning(f"sub process running5 in os pid {os.getpid()}")
+
     if result is not None:
         comms_decoder.send(result)
+
+    plog(f"_parse_file_entrypoint runned in os pid {os.getpid()}")
+    logging.warning(f"sub process start runned in os pid {os.getpid()}")
 
 
 def _parse_file(msg: DagFileParseRequest, log: FilteringBoundLogger) -> DagFileParsingResult | None:
     # TODO: Set known_pool names on DagBag!
+    plog(f"start _parse_file, msg: {msg}")
+    plog(msg.file)
+    plog(msg.bundle_path)
 
     bag = DagBag(
         dag_folder=msg.file,
@@ -185,8 +214,30 @@ def _parse_file(msg: DagFileParseRequest, log: FilteringBoundLogger) -> DagFileP
         _execute_callbacks(bag, msg.callback_requests, log)
         return None
 
+    # _serialize_dags 실행시간 측정 시작
+    start_time = time.time()
+    plog(f"_serialize_dags start time: {start_time:.4f} seconds")
+
     serialized_dags, serialization_import_errors = _serialize_dags(bag, log)
+    end_time = time.time()
+    plog(f"_serialize_dags end time: {end_time:.4f} seconds")
+
+    execution_time = end_time - start_time
+
+    # 로그에 실행시간 기록
+    plog(f"_serialize_dags execution time: {execution_time:.4f} seconds")
+
+
+    start_time2 = time.time()
+    plog(f"bag.import_errors.update(serialization_import_errors) start time: {start_time2:.4f} seconds")
     bag.import_errors.update(serialization_import_errors)
+    end_time2 = time.time()
+    plog(f"bag.import_errors.update(serialization_import_errors) end time: {end_time2:.4f} seconds")
+
+    execution_time2 = end_time2 - start_time2
+    # 로그에 실행시간 기록
+    plog(f"bag.import_errors.update(serialization_import_errors) execution time: {execution_time2:.4f} seconds")
+
     result = DagFileParsingResult(
         fileloc=msg.file,
         serialized_dags=serialized_dags,

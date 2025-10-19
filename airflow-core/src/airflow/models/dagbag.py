@@ -39,7 +39,7 @@ from sqlalchemy.orm.attributes import NO_VALUE
 from tabulate import tabulate
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.configuration import conf
 from airflow.exceptions import (
     AirflowClusterPolicyError,
@@ -101,6 +101,9 @@ def _capture_with_reraise() -> Generator[list[warnings.WarningMessage], None, No
                     source=cw.source,
                 )
 
+def plog(msg):
+    now = datetime.now().isoformat()
+    print(f"[{now}], os[{os.getpid()}], {msg}")
 
 class FileLoadStat(NamedTuple):
     """
@@ -193,6 +196,8 @@ class DagBag(LoggingMixin):
         known_pools: set[str] | None = None,
         bundle_path: Path | None = None,
     ):
+        plog(f"init DagBag start")
+
         super().__init__()
         self.bundle_path = bundle_path
         include_examples = (
@@ -203,6 +208,8 @@ class DagBag(LoggingMixin):
         safe_mode = (
             safe_mode if isinstance(safe_mode, bool) else conf.getboolean("core", "DAG_DISCOVERY_SAFE_MODE")
         )
+
+        plog(f"init DagBag running 1")
 
         dag_folder = dag_folder or settings.DAGS_FOLDER
         self.dag_folder = dag_folder
@@ -218,17 +225,27 @@ class DagBag(LoggingMixin):
 
         self.known_pools = known_pools
 
+        plog(f"init DagBag running 2")
+
         self.dagbag_import_error_tracebacks = conf.getboolean("core", "dagbag_import_error_tracebacks")
         self.dagbag_import_error_traceback_depth = conf.getint("core", "dagbag_import_error_traceback_depth")
+
+        plog(f"init DagBag running 3")
+
         if collect_dags:
             self.collect_dags(
                 dag_folder=dag_folder,
                 include_examples=include_examples,
                 safe_mode=safe_mode,
             )
+
+        plog(f"init DagBag running 4")
         # Should the extra operator link be loaded via plugins?
         # This flag is set to False in Scheduler so that Extra Operator links are not loaded
         self.load_op_links = load_op_links
+
+        plog(f"init DagBag running end")
+
 
     def size(self) -> int:
         """:return: the amount of dags contained in this dagbag"""
@@ -590,15 +607,20 @@ class DagBag(LoggingMixin):
         un-anchored regexes or gitignore-like glob expressions, depending on
         the ``DAG_IGNORE_FILE_SYNTAX`` configuration parameter.
         """
+        plog(f"init collect_dags start")
         self.log.info("Filling up the DagBag from %s", dag_folder)
         dag_folder = dag_folder or self.dag_folder
         # Used to store stats around DagBag processing
         stats = []
 
+        plog(f"running collect_dags 2")
+
         # Ensure dag_folder is a str -- it may have been a pathlib.Path
         dag_folder = correct_maybe_zipped(str(dag_folder))
 
         files_to_parse = list_py_file_paths(dag_folder, safe_mode=safe_mode)
+
+        plog(f"running collect_dags 3")
 
         if include_examples:
             from airflow import example_dags
@@ -607,7 +629,11 @@ class DagBag(LoggingMixin):
 
             files_to_parse.extend(list_py_file_paths(example_dag_folder, safe_mode=safe_mode))
 
+        plog(f"running collect_dags 4")
+        plog(f"file_to_parse: {files_to_parse}")
+
         for filepath in files_to_parse:
+            plog(f"running collect_dags 5, {filepath}")
             try:
                 file_parse_start_dttm = timezone.utcnow()
                 found_dags = self.process_file(filepath, only_if_updated=only_if_updated, safe_mode=safe_mode)
@@ -627,6 +653,7 @@ class DagBag(LoggingMixin):
                 self.log.exception(e)
 
         self.dagbag_stats = sorted(stats, key=lambda x: x.duration, reverse=True)
+        plog(f"running collect_dags 6")
 
     def dagbag_report(self):
         """Print a report around DagBag loading stats."""

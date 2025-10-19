@@ -1845,7 +1845,7 @@ def _disable_redact(request: pytest.FixtureRequest, mocker):
     if next(request.node.iter_markers("enable_redact"), None):
         with pytest.MonkeyPatch.context() as mp_ctx:
             if AIRFLOW_V_3_1_PLUS:
-                from airflow._shared.secrets_masker import (
+                from airflow._shared.secrets_masker2 import (
                     SecretsMasker as CoreSecretsMasker,
                 )
                 from airflow.sdk._shared.secrets_masker import (
@@ -1879,7 +1879,7 @@ def _disable_redact(request: pytest.FixtureRequest, mocker):
     with pytest.MonkeyPatch.context() as mp_ctx:
         # NEW: Set class variable instead of settings
         if AIRFLOW_V_3_1_PLUS:
-            from airflow._shared.secrets_masker import (
+            from airflow._shared.secrets_masker2 import (
                 SecretsMasker as CoreSecretsMasker,
             )
             from airflow.sdk._shared.secrets_masker import (
@@ -2756,7 +2756,7 @@ def _import_timezone():
         from airflow.sdk import timezone
     except ImportError:
         try:
-            from airflow._shared.timezones import timezone
+            from airflow._shared.timezones1 import timezone
         except ImportError:
             from airflow.utils import timezone
     return timezone

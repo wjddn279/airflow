@@ -28,7 +28,7 @@ import time_machine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from airflow._shared.timezones.timezone import utcnow
+from airflow._shared.timezones1.timezone import utcnow
 from airflow.models.hitl import HITLDetail
 from airflow.models.log import Log
 from airflow.sdk.execution_time.hitl import HITLUser

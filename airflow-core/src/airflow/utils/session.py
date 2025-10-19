@@ -17,6 +17,8 @@
 from __future__ import annotations
 
 import contextlib
+import logging
+import os
 from collections.abc import Callable, Generator
 from functools import wraps
 from inspect import signature
@@ -40,11 +42,14 @@ def create_session(scoped: bool = True) -> Generator[SASession, None, None]:
     session = Session()
     try:
         yield session
+        logging.warning(f"session made by create_session in pid: {os.getpid()}")
         session.commit()
     except Exception:
+        logging.warning("session rollbacked by create_session")
         session.rollback()
         raise
     finally:
+        logging.warning(f"session closed by create_session in pid: {os.getpid()}")
         session.close()
 
 

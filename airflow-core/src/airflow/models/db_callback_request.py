@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 
 from sqlalchemy import Column, Integer, String
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.models.base import Base
 from airflow.utils.sqlalchemy import ExtendedJSON, UtcDateTime
 

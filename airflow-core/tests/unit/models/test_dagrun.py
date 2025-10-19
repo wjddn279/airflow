@@ -31,7 +31,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.callbacks.callback_requests import DagCallbackRequest, DagRunContext
 from airflow.models.dag import DagModel, infer_automated_data_interval
 from airflow.models.dag_version import DagVersion

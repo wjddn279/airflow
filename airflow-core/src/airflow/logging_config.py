@@ -85,7 +85,7 @@ def load_logging_config() -> tuple[dict[str, Any], str]:
 
 
 def configure_logging():
-    from airflow._shared.logging import configure_logging, init_log_folder
+    from airflow._shared.logging2 import configure_logging, init_log_folder
 
     logging_config, logging_class_path = load_logging_config()
     try:

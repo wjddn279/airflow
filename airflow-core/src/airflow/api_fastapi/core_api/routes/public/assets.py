@@ -24,7 +24,7 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy import and_, delete, func, select
 from sqlalchemy.orm import joinedload, subqueryload
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.common.dagbag import DagBagDep, get_latest_version_of_dag
 from airflow.api_fastapi.common.db.common import SessionDep, paginated_select
 from airflow.api_fastapi.common.parameters import (

@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 
-from airflow._shared.timezones.timezone import datetime
+from airflow._shared.timezones1.timezone import datetime
 from airflow.models.dag import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 

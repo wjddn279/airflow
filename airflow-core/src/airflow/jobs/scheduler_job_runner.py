@@ -38,7 +38,7 @@ from sqlalchemy.orm import joinedload, lazyload, load_only, make_transient, sele
 from sqlalchemy.sql import expression
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.execution_api.datamodels.taskinstance import DagRun as DRDataModel, TIRunContext
 from airflow.callbacks.callback_requests import (
     DagCallbackRequest,
@@ -94,7 +94,7 @@ if TYPE_CHECKING:
     from pendulum.datetime import DateTime
     from sqlalchemy.orm import Query, Session
 
-    from airflow._shared.logging.types import Logger
+    from airflow._shared.logging2.types import Logger
     from airflow.executors.base_executor import BaseExecutor
     from airflow.executors.executor_utils import ExecutorName
     from airflow.models.mappedoperator import MappedOperator

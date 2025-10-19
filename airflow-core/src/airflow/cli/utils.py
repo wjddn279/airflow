@@ -78,7 +78,7 @@ def fetch_dag_run_from_run_id_or_logical_date_string(
     from pendulum.parsing.exceptions import ParserError
     from sqlalchemy import select
 
-    from airflow._shared.timezones import timezone
+    from airflow._shared.timezones1 import timezone
     from airflow.models.dagrun import DagRun
 
     if dag_run := session.scalar(select(DagRun).where(DagRun.dag_id == dag_id, DagRun.run_id == value)):

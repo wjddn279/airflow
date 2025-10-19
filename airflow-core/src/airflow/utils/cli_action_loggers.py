@@ -123,7 +123,7 @@ def default_action_log(
     """
     from sqlalchemy.exc import OperationalError, ProgrammingError
 
-    from airflow._shared.timezones import timezone
+    from airflow._shared.timezones1 import timezone
     from airflow.models.log import Log
 
     try:

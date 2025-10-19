@@ -22,7 +22,7 @@ from datetime import datetime
 import pytest
 from pydantic import TypeAdapter
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.execution_api.datamodels.taskinstance import (
     DagRun as DRDataModel,
     TaskInstance as TIDataModel,

@@ -45,7 +45,7 @@ from dateutil.relativedelta import FR, relativedelta
 from kubernetes.client import models as k8s
 
 import airflow
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.exceptions import (
     AirflowException,
     ParamValidationError,

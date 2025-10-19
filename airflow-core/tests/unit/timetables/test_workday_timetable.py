@@ -22,7 +22,7 @@ import datetime
 import pendulum
 import pytest
 
-from airflow._shared.timezones.timezone import utc
+from airflow._shared.timezones1.timezone import utc
 from airflow.example_dags.plugins.workday import AfterWorkdayTimetable
 from airflow.timetables.base import DagRunInfo, DataInterval, TimeRestriction, Timetable
 

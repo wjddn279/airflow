@@ -29,7 +29,7 @@ from typing import IO, TYPE_CHECKING, Any, TypeVar, cast
 import structlog
 
 if TYPE_CHECKING:
-    from airflow._shared.logging.types import Logger
+    from airflow._shared.logging2.types import Logger
 
 # 7-bit C1 ANSI escape sequences
 ANSI_ESCAPE = re.compile(r"\x1B[@-_][0-?]*[ -/]*[@-~]")

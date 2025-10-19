@@ -29,7 +29,7 @@ from typing import NamedTuple
 
 import lazy_object_proxy
 
-from airflow._shared.timezones.timezone import parse as parsedate
+from airflow._shared.timezones1.timezone import parse as parsedate
 from airflow.cli.commands.legacy_commands import check_legacy_command
 from airflow.configuration import conf
 from airflow.jobs.job import JobState

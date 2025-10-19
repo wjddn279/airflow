@@ -34,8 +34,8 @@ import time_machine
 from sqlalchemy import inspect, select
 
 from airflow import settings
-from airflow._shared.timezones import timezone
-from airflow._shared.timezones.timezone import datetime as datetime_tz
+from airflow._shared.timezones1 import timezone
+from airflow._shared.timezones1.timezone import datetime as datetime_tz
 from airflow.configuration import conf
 from airflow.exceptions import AirflowException, ParamValidationError
 from airflow.models import DagBag

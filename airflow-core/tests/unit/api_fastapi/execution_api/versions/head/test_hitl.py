@@ -24,7 +24,7 @@ import time_machine
 from httpx import Client
 from uuid6 import uuid7
 
-from airflow._shared.timezones.timezone import convert_to_utc
+from airflow._shared.timezones1.timezone import convert_to_utc
 from airflow.models.hitl import HITLDetail
 
 if TYPE_CHECKING:

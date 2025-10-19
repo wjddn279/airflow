@@ -29,7 +29,7 @@ from kubernetes.client import models as k8s
 from pendulum.tz.timezone import FixedTimezone, Timezone
 from uuid6 import uuid7
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.callbacks.callback_requests import DagCallbackRequest, TaskCallbackRequest
 from airflow.exceptions import (
     AirflowException,

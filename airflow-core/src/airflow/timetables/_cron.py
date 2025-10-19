@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 from cron_descriptor import CasingTypeEnum, ExpressionDescriptor, FormatException, MissingFieldException
 from croniter import CroniterBadCronError, CroniterBadDateError, croniter
 
-from airflow._shared.timezones.timezone import convert_to_utc, make_aware, make_naive, parse_timezone
+from airflow._shared.timezones1.timezone import convert_to_utc, make_aware, make_naive, parse_timezone
 from airflow.exceptions import AirflowTimetableInvalid
 from airflow.utils.dates import cron_presets
 

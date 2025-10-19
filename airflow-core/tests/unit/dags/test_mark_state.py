@@ -21,7 +21,7 @@ import time
 from datetime import datetime
 from time import sleep
 
-from airflow._shared.timezones.timezone import utcnow
+from airflow._shared.timezones1.timezone import utcnow
 from airflow.models.dag import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.utils.session import create_session

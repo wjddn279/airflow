@@ -20,7 +20,7 @@ from fastapi import Depends, status
 from sqlalchemy import func, select
 from sqlalchemy.sql.expression import case, false
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.auth.managers.models.resource_details import DagAccessEntity
 from airflow.api_fastapi.common.db.common import SessionDep
 from airflow.api_fastapi.common.parameters import DateTimeQuery, OptionalDateTimeQuery

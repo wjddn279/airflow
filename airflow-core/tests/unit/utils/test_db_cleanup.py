@@ -31,7 +31,7 @@ from sqlalchemy.exc import OperationalError, SQLAlchemyError
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from airflow import DAG
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.exceptions import AirflowException
 from airflow.models import DagModel, DagRun, TaskInstance
 from airflow.models.dag_version import DagVersion

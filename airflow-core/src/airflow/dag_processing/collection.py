@@ -35,7 +35,7 @@ from sqlalchemy import delete, func, insert, select, tuple_, update
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import joinedload, load_only
 
-from airflow._shared.timezones.timezone import utcnow
+from airflow._shared.timezones1.timezone import utcnow
 from airflow.assets.manager import asset_manager
 from airflow.models.asset import (
     AssetActive,

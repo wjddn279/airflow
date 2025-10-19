@@ -48,7 +48,7 @@ from tests_common.test_utils.db import clear_db_runs
 from tests_common.test_utils.version_compat import AIRFLOW_V_3_0_PLUS, AIRFLOW_V_3_1_PLUS
 
 if AIRFLOW_V_3_1_PLUS:
-    from airflow._shared.timezones import timezone
+    from airflow._shared.timezones1 import timezone
 else:
     from airflow.utils import timezone  # type: ignore[attr-defined,no-redef]
 

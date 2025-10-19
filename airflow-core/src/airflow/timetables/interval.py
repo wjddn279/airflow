@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any
 from dateutil.relativedelta import relativedelta
 from pendulum import DateTime
 
-from airflow._shared.timezones.timezone import coerce_datetime, utcnow
+from airflow._shared.timezones1.timezone import coerce_datetime, utcnow
 from airflow.timetables._cron import CronMixin
 from airflow.timetables._delta import DeltaMixin
 from airflow.timetables.base import DagRunInfo, DataInterval, Timetable

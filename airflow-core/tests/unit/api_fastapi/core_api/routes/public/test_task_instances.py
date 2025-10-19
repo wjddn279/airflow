@@ -28,7 +28,7 @@ import pendulum
 import pytest
 from sqlalchemy import select
 
-from airflow._shared.timezones.timezone import datetime
+from airflow._shared.timezones1.timezone import datetime
 from airflow.dag_processing.bundles.manager import DagBundlesManager
 from airflow.jobs.job import Job
 from airflow.jobs.triggerer_job_runner import TriggererJobRunner

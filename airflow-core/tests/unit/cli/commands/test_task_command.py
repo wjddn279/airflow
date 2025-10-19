@@ -31,7 +31,7 @@ from unittest import mock
 
 import pytest
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.cli import cli_parser
 from airflow.cli.commands import task_command
 from airflow.configuration import conf

@@ -46,7 +46,7 @@ from sqlalchemy.orm import backref, load_only, relationship
 from sqlalchemy.sql import expression
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.assets.evaluation import AssetEvaluator
 from airflow.configuration import conf as airflow_conf
 from airflow.exceptions import AirflowException

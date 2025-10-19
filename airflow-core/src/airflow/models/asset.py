@@ -36,7 +36,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.models.base import Base, StringID
 from airflow.settings import json
 from airflow.utils.sqlalchemy import UtcDateTime

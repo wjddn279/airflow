@@ -23,7 +23,7 @@ from time import sleep
 
 import pytest
 
-from airflow._shared.timezones.timezone import datetime
+from airflow._shared.timezones1.timezone import datetime
 from airflow.exceptions import AirflowTaskTimeout
 from airflow.models.baseoperator import BaseOperator
 from airflow.providers.standard.operators.empty import EmptyOperator

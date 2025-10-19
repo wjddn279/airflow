@@ -25,7 +25,7 @@ import pytest
 from kgb import spy_on
 from uuid6 import uuid7
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.executors import workloads
 from airflow.executors.local_executor import LocalExecutor, _execute_work
 from airflow.utils.state import State

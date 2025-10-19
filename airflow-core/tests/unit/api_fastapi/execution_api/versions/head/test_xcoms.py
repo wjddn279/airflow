@@ -25,7 +25,7 @@ import httpx
 import pytest
 from fastapi import FastAPI, HTTPException, Path, Request, status
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.execution_api.datamodels.xcom import XComResponse
 from airflow.models.dagrun import DagRun
 from airflow.models.taskmap import TaskMap

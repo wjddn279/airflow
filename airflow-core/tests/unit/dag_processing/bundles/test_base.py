@@ -29,7 +29,7 @@ from unittest.mock import patch
 import pytest
 import time_machine
 
-from airflow._shared.timezones import timezone as tz
+from airflow._shared.timezones1 import timezone as tz
 from airflow.dag_processing.bundles.base import (
     BaseDagBundle,
     BundleUsageTrackingManager,

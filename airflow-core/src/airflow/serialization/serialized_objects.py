@@ -55,7 +55,7 @@ from pendulum.tz.timezone import FixedTimezone, Timezone
 from sqlalchemy import func, or_, select, tuple_
 
 from airflow import macros
-from airflow._shared.timezones.timezone import coerce_datetime, from_timestamp, parse_timezone, utcnow
+from airflow._shared.timezones1.timezone import coerce_datetime, from_timestamp, parse_timezone, utcnow
 from airflow.callbacks.callback_requests import DagCallbackRequest, TaskCallbackRequest
 from airflow.configuration import conf as airflow_conf
 from airflow.exceptions import AirflowException, DeserializationError, SerializationError, TaskDeferred

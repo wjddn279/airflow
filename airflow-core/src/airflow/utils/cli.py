@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar, cast
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.dag_processing.bundles.manager import DagBundlesManager
 from airflow.exceptions import AirflowException
 from airflow.sdk.definitions._internal.dag_parsing_context import _airflow_parsing_context_manager
@@ -138,7 +138,7 @@ def _build_metrics(func_name, namespace):
     :param namespace: Namespace instance from argparse
     :return: dict with metrics
     """
-    from airflow._shared.secrets_masker import _secrets_masker
+    from airflow._shared.secrets_masker2 import _secrets_masker
 
     sub_commands_to_check_for_sensitive_fields = {"users", "connections"}
     sub_commands_to_check_for_sensitive_key = {"variables"}
@@ -433,7 +433,7 @@ def suppress_logs_and_warning(f: T) -> T:
         if args[0].verbose:
             f(*args, **kwargs)
         else:
-            from airflow._shared.logging.structlog import respect_stdlib_disable
+            from airflow._shared.logging2.structlog import respect_stdlib_disable
 
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")

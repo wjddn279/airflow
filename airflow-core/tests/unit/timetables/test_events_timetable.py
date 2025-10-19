@@ -21,7 +21,7 @@ import pendulum
 import pytest
 import time_machine
 
-from airflow._shared.timezones.timezone import utc
+from airflow._shared.timezones1.timezone import utc
 from airflow.timetables.base import DagRunInfo, DataInterval, TimeRestriction, Timetable
 from airflow.timetables.events import EventsTimetable
 

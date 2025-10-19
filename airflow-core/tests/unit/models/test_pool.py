@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.exceptions import AirflowException, PoolNotFound
 from airflow.models.dag_version import DagVersion
 from airflow.models.pool import Pool

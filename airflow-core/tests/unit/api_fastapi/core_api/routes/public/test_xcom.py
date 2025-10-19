@@ -21,7 +21,7 @@ from unittest import mock
 
 import pytest
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.core_api.datamodels.xcom import XComCreateBody
 from airflow.models.dag_version import DagVersion
 from airflow.models.dagbundle import DagBundleModel

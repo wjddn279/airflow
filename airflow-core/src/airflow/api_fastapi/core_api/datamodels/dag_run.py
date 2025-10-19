@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING
 
 from pydantic import AliasPath, AwareDatetime, Field, NonNegativeInt, model_validator
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.core_api.base import BaseModel, StrictBaseModel
 from airflow.api_fastapi.core_api.datamodels.dag_versions import DagVersionResponse
 from airflow.models import DagRun

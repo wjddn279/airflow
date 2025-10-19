@@ -31,7 +31,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text, selec
 from sqlalchemy.orm import declared_attr, reconstructor, synonym
 from sqlalchemy_utils import UUIDType
 
-from airflow._shared.secrets_masker import mask_secret
+from airflow._shared.secrets_masker2 import mask_secret
 from airflow.configuration import ensure_secrets_loaded
 from airflow.exceptions import AirflowException, AirflowNotFoundException
 from airflow.models.base import ID_LEN, Base

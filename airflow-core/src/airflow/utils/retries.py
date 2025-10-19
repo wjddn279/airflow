@@ -27,7 +27,7 @@ from sqlalchemy.exc import DBAPIError
 from airflow.configuration import conf
 
 if TYPE_CHECKING:
-    from airflow._shared.logging.types import Logger
+    from airflow._shared.logging2.types import Logger
 
 F = TypeVar("F", bound=Callable)
 

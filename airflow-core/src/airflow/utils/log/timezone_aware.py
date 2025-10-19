@@ -39,7 +39,7 @@ class TimezoneAware(logging.Formatter):
         This returns the creation time of the specified LogRecord in ISO 8601
         date and time format in the local time zone.
         """
-        from airflow._shared.timezones.timezone import from_timestamp
+        from airflow._shared.timezones1.timezone import from_timestamp
 
         dt = from_timestamp(record.created, tz="local")
         s = dt.strftime(datefmt or self.default_time_format)

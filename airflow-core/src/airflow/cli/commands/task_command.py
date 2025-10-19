@@ -28,7 +28,7 @@ from contextlib import redirect_stdout
 from typing import TYPE_CHECKING, Protocol, cast
 
 from airflow import settings
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.cli.simple_table import AirflowConsole
 from airflow.cli.utils import fetch_dag_run_from_run_id_or_logical_date_string
 from airflow.exceptions import AirflowConfigException, DagRunNotFound, TaskInstanceNotFound

@@ -30,7 +30,7 @@ from unittest import mock
 
 from uuid6 import uuid7
 
-from airflow._shared.timezones.timezone import utc, utcnow
+from airflow._shared.timezones1.timezone import utc, utcnow
 from airflow.api_fastapi.execution_api.datamodels.hitl import HITLDetailResponse, HITLUser
 from airflow.providers.standard.triggers.hitl import (
     HITLTrigger,

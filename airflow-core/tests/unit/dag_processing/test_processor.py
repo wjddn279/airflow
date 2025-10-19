@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import pathlib
 import sys
 import textwrap
@@ -33,7 +34,7 @@ import structlog
 from pydantic import TypeAdapter
 from structlog.typing import FilteringBoundLogger
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.execution_api.app import InProcessExecutionAPI
 from airflow.api_fastapi.execution_api.datamodels.taskinstance import (
     DagRun as DRDataModel,

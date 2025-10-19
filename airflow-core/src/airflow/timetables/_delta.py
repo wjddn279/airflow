@@ -20,7 +20,7 @@ from __future__ import annotations
 import datetime
 from typing import TYPE_CHECKING
 
-from airflow._shared.timezones.timezone import convert_to_utc
+from airflow._shared.timezones1.timezone import convert_to_utc
 from airflow.exceptions import AirflowTimetableInvalid
 
 if TYPE_CHECKING:

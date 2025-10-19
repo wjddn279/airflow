@@ -27,7 +27,7 @@ import pytest
 import pytz
 from cryptography.fernet import Fernet
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.jobs.job import Job
 from airflow.jobs.triggerer_job_runner import TriggererJobRunner
 from airflow.models import Deadline, TaskInstance, Trigger

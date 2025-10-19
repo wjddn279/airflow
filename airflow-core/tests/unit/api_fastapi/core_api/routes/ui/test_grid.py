@@ -24,7 +24,7 @@ import pendulum
 import pytest
 from sqlalchemy import select
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.models.dag import DagModel
 from airflow.models.dagbag import DBDagBag
 from airflow.models.taskinstance import TaskInstance

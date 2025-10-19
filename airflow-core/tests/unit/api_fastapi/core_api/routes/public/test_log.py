@@ -26,7 +26,7 @@ import pytest
 from itsdangerous.url_safe import URLSafeSerializer
 from uuid6 import uuid7
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.api_fastapi.common.dagbag import create_dag_bag, dag_bag_from_app
 from airflow.models.dag import DAG
 from airflow.providers.standard.operators.empty import EmptyOperator

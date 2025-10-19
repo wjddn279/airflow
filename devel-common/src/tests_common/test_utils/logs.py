@@ -123,13 +123,13 @@ class StructlogCapture:
             self.PER_LOGGER_LEVELS = PER_LOGGER_LEVELS
 
             try:
-                import airflow._shared.logging.structlog
+                import airflow._shared.logging2.structlog
             except ModuleNotFoundError:
                 pass
             else:
                 airflow._shared.logging.structlog.PER_LOGGER_LEVELS = PER_LOGGER_LEVELS
         except ModuleNotFoundError:
-            from airflow._shared.logging.structlog import NAME_TO_LEVEL, PER_LOGGER_LEVELS
+            from airflow._shared.logging2.structlog import NAME_TO_LEVEL, PER_LOGGER_LEVELS
 
             self.NAME_TO_LEVEL = NAME_TO_LEVEL
             self.PER_LOGGER_LEVELS = PER_LOGGER_LEVELS

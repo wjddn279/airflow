@@ -23,7 +23,7 @@ import datetime
 import pytest
 import time_machine
 
-from airflow._shared.timezones import timezone
+from airflow._shared.timezones1 import timezone
 from airflow.timetables.base import DagRunInfo, TimeRestriction
 from airflow.timetables.simple import OnceTimetable
 

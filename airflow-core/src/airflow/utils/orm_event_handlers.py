@@ -29,12 +29,14 @@ from airflow.utils.sqlalchemy import get_orm_mapper
 
 log = logging.getLogger(__name__)
 
+connection_refs = {}
 
 def setup_event_handlers(engine):
     """Setups event handlers."""
     from airflow.models import import_all_models
 
     event.listen(get_orm_mapper(), "before_configured", import_all_models, once=True)
+    pid = os.getpid()
 
     @event.listens_for(engine, "connect")
     def connect(dbapi_connection, connection_record):
@@ -57,6 +59,14 @@ def setup_event_handlers(engine):
             cursor = dbapi_connection.cursor()
             cursor.execute("SET time_zone = '+00:00'")
             cursor.close()
+
+            if os.getpid() == pid:
+                connection_refs[connection_record] = os.getpid()
+
+        @event.listens_for(engine, "close")
+        def set_mysql_timezone(dbapi_connection, connection_record):
+            if os.getpid() == pid:
+                connection_refs.pop(connection_record, None)
 
     @event.listens_for(engine, "checkout")
     def checkout(dbapi_connection, connection_record, connection_proxy):

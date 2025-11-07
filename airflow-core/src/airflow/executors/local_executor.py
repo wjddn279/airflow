@@ -34,6 +34,8 @@ import sys
 from multiprocessing import Queue, SimpleQueue
 from typing import TYPE_CHECKING
 
+import memray
+
 from airflow.executors import workloads
 from airflow.executors.base_executor import PARALLELISM, BaseExecutor
 from airflow.utils.state import TaskInstanceState
@@ -56,50 +58,57 @@ def _run_worker(
     output: Queue[TaskInstanceStateType],
     unread_messages: multiprocessing.sharedctypes.Synchronized[int],
 ):
-    import signal
+    def do():
+        import signal
 
-    # Ignore ctrl-c in this process -- we don't want to kill _this_ one. we let tasks run to completion
-    signal.signal(signal.SIGINT, signal.SIG_IGN)
+        # Ignore ctrl-c in this process -- we don't want to kill _this_ one. we let tasks run to completion
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-    log = logging.getLogger(logger_name)
-    log.info("Worker starting up pid=%d", os.getpid())
+        log = logging.getLogger(logger_name)
+        log.info("Worker starting up pid=%d", os.getpid())
 
-    while True:
-        setproctitle("airflow worker -- LocalExecutor: <idle>", log)
-        try:
-            workload = input.get()
-        except EOFError:
-            log.info(
-                "Failed to read tasks from the task queue because the other "
-                "end has closed the connection. Terminating worker %s.",
-                multiprocessing.current_process().name,
-            )
-            break
+        while True:
+            setproctitle("airflow worker -- LocalExecutor: <idle>", log)
+            try:
+                workload = input.get()
+            except EOFError:
+                log.info(
+                    "Failed to read tasks from the task queue because the other "
+                    "end has closed the connection. Terminating worker %s.",
+                    multiprocessing.current_process().name,
+                )
+                break
 
-        if workload is None:
-            # Received poison pill, no more tasks to run
-            return
+            if workload is None:
+                # Received poison pill, no more tasks to run
+                return
 
-        if not isinstance(workload, workloads.ExecuteTask):
-            raise ValueError(f"LocalExecutor does not know how to handle {type(workload)}")
+            if not isinstance(workload, workloads.ExecuteTask):
+                raise ValueError(f"LocalExecutor does not know how to handle {type(workload)}")
 
-        # Decrement this as soon as we pick up a message off the queue
-        with unread_messages:
-            unread_messages.value -= 1
-        key = None
-        if ti := getattr(workload, "ti", None):
-            key = ti.key
-        else:
-            raise TypeError(f"Don't know how to get ti key from {type(workload).__name__}")
+            # Decrement this as soon as we pick up a message off the queue
+            with unread_messages:
+                unread_messages.value -= 1
+            key = None
+            if ti := getattr(workload, "ti", None):
+                key = ti.key
+            else:
+                raise TypeError(f"Don't know how to get ti key from {type(workload).__name__}")
 
-        try:
-            _execute_work(log, workload)
+            try:
+                _execute_work(log, workload)
 
-            output.put((key, TaskInstanceState.SUCCESS, None))
-        except Exception as e:
-            log.exception("uhoh")
-            output.put((key, TaskInstanceState.FAILED, e))
+                output.put((key, TaskInstanceState.SUCCESS, None))
+            except Exception as e:
+                log.exception("uhoh")
+                output.put((key, TaskInstanceState.FAILED, e))
 
+    pid = os.getpid()
+    if pid < 26:
+        with memray.Tracker(f"/home/airflow/memray/output-{pid}.bin", trace_python_allocators=True, native_traces=True, memory_interval_ms=100):
+            do()
+    else:
+        do()
 
 def _execute_work(log: logging.Logger, workload: workloads.ExecuteTask) -> None:
     """

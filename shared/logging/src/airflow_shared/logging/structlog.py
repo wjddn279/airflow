@@ -586,7 +586,7 @@ def init_log_file(
     *,
     new_folder_permissions: int = 0o775,
     new_file_permissions: int = 0o664,
-) -> Path:
+) -> str:
     """
     Ensure log file and parent directories are created with the correct permissions.
 
@@ -594,11 +594,16 @@ def init_log_file(
 
     See above ``init_log_folder`` method for more detailed explanation.
     """
-    full_path = Path(base_log_folder, local_relative_path)
-    init_log_folder(full_path.parent, new_folder_permissions)
+    full_path = os.path.join(str(base_log_folder), str(local_relative_path))
+
+    parent_dir = os.path.dirname(full_path)
+    init_log_folder(parent_dir, new_folder_permissions)
 
     try:
-        full_path.touch(new_file_permissions)
+        os.utime(full_path, None)
+        flags = os.O_CREAT | os.O_WRONLY
+        fd = os.open(full_path, flags, new_file_permissions)
+        os.close(fd)
     except OSError as e:
         log = structlog.get_logger(__name__)
         log.warning("OSError while changing ownership of the log file. %s", e)

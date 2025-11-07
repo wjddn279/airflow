@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import io
 import logging
 import os
 import selectors
@@ -296,9 +297,11 @@ class TriggerLoggingFactory:
 
         pretty_logs = False
         if pretty_logs:
-            underlying_logger: WrappedLogger = structlog.WriteLogger(log_file.open("w", buffering=1))
+            fd = io.open(log_file, "w", buffering=1)
+            underlying_logger: WrappedLogger = structlog.WriteLogger(fd)
         else:
-            underlying_logger = structlog.BytesLogger(log_file.open("wb"))
+            fd = io.open(log_file, "wb")
+            underlying_logger = structlog.BytesLogger(fd)
         logger = structlog.wrap_logger(underlying_logger, processors=processors).bind()
         self.bound_logger = logger
         return logger

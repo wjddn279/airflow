@@ -135,7 +135,7 @@ def logger_at_level(name: str, level: int) -> Logger:
     )
 
 
-def init_log_file(local_relative_path: str) -> Path:
+def init_log_file(local_relative_path: str) -> str:
     """
     Ensure log file and parent directories are created.
 

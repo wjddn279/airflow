@@ -22,6 +22,7 @@ from __future__ import annotations
 import contextlib
 import functools
 import inspect
+import io
 import logging
 import os
 import random
@@ -895,7 +896,7 @@ class DagFileProcessorManager(LoggingMixin):
     def _get_logger_for_dag_file(self, dag_file: DagFileInfo):
         log_filename = self._render_log_filename(dag_file)
         log_file = init_log_file(log_filename)
-        logger_filehandle = log_file.open("ab")
+        logger_filehandle = io.open(log_file, "ab")
         underlying_logger = structlog.BytesLogger(logger_filehandle)
         processors = logging_processors(json_output=True)
         return structlog.wrap_logger(

@@ -1834,10 +1834,10 @@ def _configure_logging(log_path: str, client: Client) -> tuple[FilteringBoundLog
 
     json_logs = True
     if json_logs:
-        log_file_descriptor = log_file.open("ab")
+        log_file_descriptor = io.open(log_file, "ab")
         underlying_logger: WrappedLogger = structlog.BytesLogger(cast("BinaryIO", log_file_descriptor))
     else:
-        log_file_descriptor = log_file.open("a", buffering=1)
+        log_file_descriptor = io.open(log_file, "a", buffering=1)
         underlying_logger = structlog.WriteLogger(cast("TextIO", log_file_descriptor))
 
     with _remote_logging_conn(client):

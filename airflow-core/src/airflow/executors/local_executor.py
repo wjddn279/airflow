@@ -39,6 +39,8 @@ from airflow.executors.base_executor import BaseExecutor
 from airflow.utils.gc_utils import with_gc_freeze
 from airflow.utils.state import TaskInstanceState
 
+import gc
+
 # add logger to parameter of setproctitle to support logging
 if sys.platform == "darwin":
     setproctitle = lambda title, logger: logger.debug("Mac OS detected, skipping setproctitle")
@@ -64,6 +66,9 @@ def _run_worker(
 
     log = logging.getLogger(logger_name)
     log.info("Worker starting up pid=%d", os.getpid())
+    log.info("gc isenabled status: %s, in %s", gc.isenabled(), os.getpid())
+    if not gc.isenabled():
+        gc.enable()
 
     while True:
         setproctitle("airflow worker -- LocalExecutor: <idle>", log)
@@ -165,10 +170,26 @@ class LocalExecutor(BaseExecutor):
         # (it looks like an int to python)
         self._unread_messages = multiprocessing.Value(ctypes.c_uint)
 
+        stats = gc.get_stats()
+        self.log.info("test gc")
+        self.log.info({
+        'gen0_collections': stats[0]['collections'],
+        'gen1_collections': stats[1]['collections'],
+        'gen2_collections': stats[2]['collections'],
+        'total_collections': sum(s['collections'] for s in stats)}
+        )
+        self.log.info(gc.get_count())
+
+        # time.sleep(300)
+
         if self.is_mp_using_fork:
             # This creates the maximum number of worker processes (parallelism) at once
             # to minimize gc freeze/unfreeze cycles when using fork in multiprocessing
             self._spawn_workers_with_gc_freeze(self.parallelism)
+
+        if not gc.isenabled():
+            self.log.info("after spawn workers, the gc is still disabled and make enabled")
+            gc.enable()
 
     def _check_workers(self):
         # Reap any dead workers

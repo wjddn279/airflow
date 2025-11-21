@@ -25,6 +25,7 @@ Produce a CLI parser object from Airflow CLI command configuration.
 from __future__ import annotations
 
 import argparse
+import gc
 import logging
 import sys
 from argparse import Action
@@ -84,6 +85,13 @@ except Exception as e:
     if len(sys.argv) > 1 and sys.argv[1] == "api-server":
         log.exception(e)
         sys.exit(1)
+
+if sys.argv[1] != "scheduler" and not gc.isenabled():
+    log.info("the gc is enabled")
+    gc.enable()
+else:
+    log.info("the gc is still disabled")
+
 
 
 ALL_COMMANDS_DICT: dict[str, CLICommand] = {sp.name: sp for sp in airflow_commands}

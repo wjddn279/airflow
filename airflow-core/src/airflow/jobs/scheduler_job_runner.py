@@ -1088,6 +1088,9 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
             DagRun.set_active_spans(active_spans=self.active_spans)
             BaseExecutor.set_active_spans(active_spans=self.active_spans)
 
+            if gc.isenabled():
+                self.log.info("the gc is enabled before _run_scheduler_loop")
+
             self._run_scheduler_loop()
 
             if settings.Session is not None:

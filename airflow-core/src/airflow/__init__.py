@@ -23,6 +23,9 @@
 # Make `airflow` a namespace package, supporting installing
 # airflow.providers.* in different locations (i.e. one in site, and one in user
 # lib.)  This is required by some IDEs to resolve the import paths.
+import gc
+gc.disable()
+
 __path__ = __import__("pkgutil").extend_path(__path__, __name__)
 
 __version__ = "3.2.0"

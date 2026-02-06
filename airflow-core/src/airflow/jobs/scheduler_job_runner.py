@@ -3019,13 +3019,7 @@ class SchedulerJobRunner(BaseJobRunner, LoggingMixin):
         if not assets:
             return
 
-        active_assets = set(
-            session.execute(
-                select(AssetActive.name, AssetActive.uri).where(
-                    tuple_(AssetActive.name, AssetActive.uri).in_((a.name, a.uri) for a in assets)
-                )
-            )
-        )
+        active_assets = set(session.execute(select(AssetActive.name, AssetActive.uri)))
 
         active_name_to_uri: dict[str, str] = {name: uri for name, uri in active_assets}
         active_uri_to_name: dict[str, str] = {uri: name for name, uri in active_assets}

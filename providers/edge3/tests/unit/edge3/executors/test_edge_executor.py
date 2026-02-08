@@ -16,7 +16,9 @@
 # under the License.
 from __future__ import annotations
 
+import os
 from datetime import datetime, timedelta
+from unittest import mock
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -347,3 +349,177 @@ class TestEdgeExecutor:
         # Verify nothing breaks
         assert key not in executor.running
         assert key not in executor.queued_tasks
+
+
+class TestEdgeExecutorMultiTeam:
+    """Tests for multi-team (AIP-67) support in EdgeExecutor."""
+
+    @pytest.fixture(autouse=True)
+    def setup_test_cases(self):
+        with create_session() as session:
+            session.execute(delete(EdgeJobModel))
+            session.execute(delete(EdgeWorkerModel))
+            session.commit()
+
+    def test_global_executor_without_team_name(self):
+        """Test that global executor (no team) works correctly."""
+        executor = EdgeExecutor()
+
+        # Verify executor has conf but no team name
+        assert hasattr(executor, "conf")
+        assert executor.conf.team_name is None
+        # Verify managed_queues is initialized with default_queue
+        assert len(executor._managed_queues) >= 1
+
+    def test_executor_with_team_name(self):
+        """Test that executor with team_name has correct conf setup."""
+        team_name = "test_team"
+        executor = EdgeExecutor(team_name=team_name)
+
+        assert executor.team_name == team_name
+        assert executor.conf.team_name == team_name
+
+    def test_multiple_team_executors_isolation(self):
+        """Test that multiple team executors can coexist with isolated resources."""
+        team_a_executor = EdgeExecutor(parallelism=2, team_name="team_a")
+        team_b_executor = EdgeExecutor(parallelism=3, team_name="team_b")
+
+        # Verify each executor has its own internal state
+        assert team_a_executor.running is not team_b_executor.running
+        assert team_a_executor.queued_tasks is not team_b_executor.queued_tasks
+        assert team_a_executor.last_reported_state is not team_b_executor.last_reported_state
+        assert team_a_executor._managed_queues is not team_b_executor._managed_queues
+
+        # Verify each has correct team config
+        assert team_a_executor.conf.team_name == "team_a"
+        assert team_b_executor.conf.team_name == "team_b"
+
+        # Verify parallelism is set independently
+        assert team_a_executor.parallelism == 2
+        assert team_b_executor.parallelism == 3
+
+    def test_team_config_used_in_check_worker_liveness(self):
+        """Test that _check_worker_liveness reads config from self.conf, not global conf."""
+        team_name = "test_team"
+        executor = EdgeExecutor(team_name=team_name)
+
+        team_env_key_prefix = f"AIRFLOW__{team_name.upper()}___EDGE__"
+        test_key_values = [
+            "heartbeat_interval",
+            "task_instance_heartbeat_timeout",
+            "job_success_purge",
+            "job_fail_purge",
+        ]
+        for test_key_value in test_key_values:
+            with mock.patch.dict(os.environ, {f"{team_env_key_prefix}{test_key_value.upper()}": "100"}):
+                value = executor.conf.getint("edge", test_key_value)
+                assert value == 100
+
+    def test_purge_jobs_filters_by_managed_queues(self):
+        """Test that _purge_jobs only purges jobs belonging to its managed queues."""
+        executor_a = EdgeExecutor()
+        executor_a._managed_queues = {"team_a_queue"}
+
+        delta_to_purge = timedelta(minutes=conf.getint("edge", "job_fail_purge") + 1)
+
+        # Create jobs for two different queues
+        with create_session() as session:
+            for queue_name in ["team_a_queue", "team_b_queue"]:
+                session.add(
+                    EdgeJobModel(
+                        dag_id="test_dag",
+                        task_id=f"task_{queue_name}",
+                        run_id="test_run",
+                        map_index=-1,
+                        try_number=1,
+                        state=TaskInstanceState.FAILED,
+                        queue=queue_name,
+                        command="mock",
+                        concurrency_slots=1,
+                        last_update=timezone.utcnow() - delta_to_purge,
+                    )
+                )
+            session.commit()
+
+        with create_session() as session:
+            executor_a._purge_jobs(session)
+            session.commit()
+
+        # Only team_a_queue job should be purged, team_b_queue job should remain
+        with create_session() as session:
+            remaining_jobs = session.scalars(select(EdgeJobModel)).all()
+            assert len(remaining_jobs) == 1
+            assert remaining_jobs[0].queue == "team_b_queue"
+
+    def test_update_orphaned_jobs_filters_by_managed_queues(self):
+        """Test that _update_orphaned_jobs only checks jobs belonging to its managed queues."""
+        executor_a = EdgeExecutor()
+        executor_a._managed_queues = {"team_a_queue"}
+
+        heartbeat_timeout = conf.getint("scheduler", "task_instance_heartbeat_timeout")
+        delta_to_orphaned = timedelta(seconds=heartbeat_timeout + 1)
+
+        # Create running jobs for two different queues, both orphaned
+        with create_session() as session:
+            for queue_name in ["team_a_queue", "team_b_queue"]:
+                session.add(
+                    EdgeJobModel(
+                        dag_id="test_dag",
+                        task_id=f"task_{queue_name}",
+                        run_id="test_run",
+                        map_index=-1,
+                        try_number=1,
+                        state=TaskInstanceState.RUNNING,
+                        queue=queue_name,
+                        command="mock",
+                        concurrency_slots=1,
+                        last_update=timezone.utcnow() - delta_to_orphaned,
+                    )
+                )
+            session.commit()
+
+        with create_session() as session:
+            executor_a._update_orphaned_jobs(session)
+            session.commit()
+
+        # Only team_a_queue job should be marked as orphaned
+        with create_session() as session:
+            jobs = session.scalars(select(EdgeJobModel)).all()
+            jobs_by_queue = {job.queue: job for job in jobs}
+            # team_a job state should be changed (orphaned)
+            assert jobs_by_queue["team_a_queue"].state != TaskInstanceState.RUNNING
+            # team_b job should still be RUNNING (not touched)
+            assert jobs_by_queue["team_b_queue"].state == TaskInstanceState.RUNNING
+
+    def test_check_worker_liveness_filters_by_managed_queues(self):
+        """Test that _check_worker_liveness only resets workers serving managed queues."""
+        executor_a = EdgeExecutor()
+        executor_a._managed_queues = {"team_a_queue"}
+
+        with create_session() as session:
+            for worker_name, queues in [
+                ("worker_team_a", ["team_a_queue"]),
+                ("worker_team_b", ["team_b_queue"]),
+            ]:
+                session.add(
+                    EdgeWorkerModel(
+                        worker_name=worker_name,
+                        state=EdgeWorkerState.IDLE,
+                        last_update=datetime(2023, 1, 1, 0, 0, 0, tzinfo=timezone.utc),
+                        queues=queues,
+                        first_online=timezone.utcnow(),
+                    )
+                )
+            session.commit()
+
+        with time_machine.travel(datetime(2023, 1, 1, 1, 0, 0, tzinfo=timezone.utc), tick=False):
+            with conf_vars({("edge", "heartbeat_interval"): "10"}):
+                with create_session() as session:
+                    executor_a._check_worker_liveness(session)
+                    session.commit()
+
+        # Only worker_team_a should be marked as UNKNOWN
+        with create_session() as session:
+            workers = {w.worker_name: w for w in session.scalars(select(EdgeWorkerModel)).all()}
+            assert workers["worker_team_a"].state == EdgeWorkerState.UNKNOWN
+            assert workers["worker_team_b"].state == EdgeWorkerState.IDLE

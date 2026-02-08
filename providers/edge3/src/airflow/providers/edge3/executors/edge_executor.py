@@ -27,7 +27,6 @@ from sqlalchemy import delete, inspect, select, text
 from sqlalchemy.exc import NoSuchTableError
 from sqlalchemy.orm import Session
 
-from airflow.configuration import conf
 from airflow.executors import workloads
 from airflow.executors.base_executor import BaseExecutor
 from airflow.models.taskinstance import TaskInstance
@@ -50,16 +49,33 @@ if TYPE_CHECKING:
     # Task tuple to send to be executed
     TaskTuple = tuple[TaskInstanceKey, CommandType, str | None, Any | None]
 
-PARALLELISM: int = conf.getint("core", "PARALLELISM")
-DEFAULT_QUEUE: str = conf.get_mandatory_value("operators", "default_queue")
-
 
 class EdgeExecutor(BaseExecutor):
     """Implementation of the EdgeExecutor to distribute work to Edge Workers via HTTP."""
 
-    def __init__(self, parallelism: int = PARALLELISM):
-        super().__init__(parallelism=parallelism)
+    supports_multi_team: bool = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.last_reported_state: dict[TaskInstanceKey, TaskInstanceState] = {}
+
+        # Check if self has the ExecutorConf set on the self.conf attribute, and if not, set it to the global
+        # configuration object. This allows the changes to be backwards compatible with older versions of
+        # Airflow.
+        # Can be removed when minimum supported provider version is equal to the version of core airflow
+        # which introduces multi-team configuration.
+        if not hasattr(self, "conf"):
+            from airflow.configuration import conf as global_conf
+
+            self.conf = global_conf
+
+        # Track queues managed by this executor instance for multi-team isolation.
+        # In a multi-team setup, each executor should only manage jobs and workers
+        # associated with its own queues, not those of other teams.
+        # Initialize with the default queue from (possibly team-specific) config.
+        self._managed_queues: set[str] = set()
+        default_queue = self.conf.get_mandatory_value("operators", "default_queue")
+        self._managed_queues.add(default_queue)
 
     def _check_db_schema(self, engine: Engine) -> None:
         """
@@ -136,6 +152,9 @@ class EdgeExecutor(BaseExecutor):
         task_instance = workload.ti
         key = task_instance.key
 
+        # Track queue for multi-team isolation
+        self._managed_queues.add(task_instance.queue)
+
         # Check if job already exists with same dag_id, task_id, run_id, map_index, try_number
         existing_job = session.scalars(
             select(EdgeJobModel).where(
@@ -170,7 +189,7 @@ class EdgeExecutor(BaseExecutor):
     def _check_worker_liveness(self, session: Session) -> bool:
         """Reset worker state if heartbeat timed out."""
         changed = False
-        heartbeat_interval: int = conf.getint("edge", "heartbeat_interval")
+        heartbeat_interval: int = self.conf.getint("edge", "heartbeat_interval")
         lifeless_workers: Sequence[EdgeWorkerModel] = session.scalars(
             select(EdgeWorkerModel)
             .with_for_update(skip_locked=True)
@@ -187,6 +206,11 @@ class EdgeExecutor(BaseExecutor):
         ).all()
 
         for worker in lifeless_workers:
+            # In multi-team setups, only manage workers whose queues overlap with ours.
+            # EdgeWorkerModel.queues is stored as a stringified list so SQL filtering is not feasible.
+            if self._managed_queues and worker.queues:
+                if not set(worker.queues) & self._managed_queues:
+                    continue
             changed = True
             #  If the worker dies in maintenance mode we want to remember it, so it can start in maintenance mode
             worker.state = (
@@ -205,15 +229,19 @@ class EdgeExecutor(BaseExecutor):
 
     def _update_orphaned_jobs(self, session: Session) -> bool:
         """Update status ob jobs when workers die and don't update anymore."""
-        heartbeat_interval: int = conf.getint("scheduler", "task_instance_heartbeat_timeout")
-        lifeless_jobs: Sequence[EdgeJobModel] = session.scalars(
+        heartbeat_interval: int = self.conf.getint("scheduler", "task_instance_heartbeat_timeout")
+        query = (
             select(EdgeJobModel)
             .with_for_update(skip_locked=True)
             .where(
                 EdgeJobModel.state == TaskInstanceState.RUNNING,
                 EdgeJobModel.last_update < (timezone.utcnow() - timedelta(seconds=heartbeat_interval)),
             )
-        ).all()
+        )
+        # Filter by managed queues for multi-team isolation
+        if self._managed_queues:
+            query = query.where(EdgeJobModel.queue.in_(self._managed_queues))
+        lifeless_jobs: Sequence[EdgeJobModel] = session.scalars(query).all()
 
         for job in lifeless_jobs:
             ti = TaskInstance.get_task_instance(
@@ -245,9 +273,9 @@ class EdgeExecutor(BaseExecutor):
     def _purge_jobs(self, session: Session) -> bool:
         """Clean finished jobs."""
         purged_marker = False
-        job_success_purge = conf.getint("edge", "job_success_purge")
-        job_fail_purge = conf.getint("edge", "job_fail_purge")
-        jobs: Sequence[EdgeJobModel] = session.scalars(
+        job_success_purge = self.conf.getint("edge", "job_success_purge")
+        job_fail_purge = self.conf.getint("edge", "job_fail_purge")
+        query = (
             select(EdgeJobModel)
             .with_for_update(skip_locked=True)
             .where(
@@ -262,7 +290,11 @@ class EdgeExecutor(BaseExecutor):
                     ]
                 )
             )
-        ).all()
+        )
+        # Filter by managed queues for multi-team isolation
+        if self._managed_queues:
+            query = query.where(EdgeJobModel.queue.in_(self._managed_queues))
+        jobs: Sequence[EdgeJobModel] = session.scalars(query).all()
 
         # Sync DB with executor otherwise runs out of sync in multi scheduler deployment
         already_removed = self.running - set(job.key for job in jobs)

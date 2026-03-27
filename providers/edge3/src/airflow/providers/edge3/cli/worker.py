@@ -67,7 +67,7 @@ from airflow.utils.state import TaskInstanceState
 
 if TYPE_CHECKING:
     from airflow.configuration import AirflowConfigParser
-    from airflow.executors.workloads import ExecuteTask
+    from airflow.executors.workloads import ExecuteCallback, ExecuteTask
     from airflow.providers.edge3.worker_api.datamodels import EdgeJobFetched
 
 logger = logging.getLogger(__name__)
@@ -673,7 +673,7 @@ class EdgeWorker:
 
         logger.info("Received job: %s", edge_job.identifier)
 
-        workload: ExecuteTask = edge_job.command
+        workload: ExecuteTask | ExecuteCallback = edge_job.command
         if TYPE_CHECKING:
             assert workload.log_path  # We need to assume this is defined in here
         logfile = Path(self.base_log_folder, workload.log_path)

@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated
+from typing import Annotated
 
 from fastapi import Body, Depends, status
 from sqlalchemy import select, update
@@ -28,6 +28,7 @@ from airflow.api_fastapi.core_api.openapi.exceptions import create_openapi_http_
 from airflow.executors.workloads import ExecuteTask
 from airflow.providers.common.compat.sdk import Stats, timezone
 from airflow.providers.edge3.models.edge_job import EdgeJobModel
+from airflow.providers.edge3.utils import ExecuteTypeBody
 from airflow.providers.edge3.version_compat import AIRFLOW_V_3_3_PLUS
 from airflow.providers.edge3.worker_api.auth import jwt_token_authorization_rest
 from airflow.providers.edge3.worker_api.datamodels import (
@@ -36,9 +37,6 @@ from airflow.providers.edge3.worker_api.datamodels import (
     WorkerQueuesBody,
 )
 from airflow.utils.state import TaskInstanceState
-
-if TYPE_CHECKING:
-    from airflow.executors.workloads import ExecuteCallback
 
 jobs_router = AirflowRouter(tags=["Jobs"], prefix="/jobs")
 

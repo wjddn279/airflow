@@ -23,7 +23,6 @@ from airflow.executors import workloads
 from airflow.providers.edge3.version_compat import AIRFLOW_V_3_3_PLUS
 
 if not AIRFLOW_V_3_3_PLUS:
-
     ExecuteTypeBody: TypeAlias = ExecuteTask
 else:
     from airflow.executors.workloads import ExecuteCallback, ExecutorWorkload

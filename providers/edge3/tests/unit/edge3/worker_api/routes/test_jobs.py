@@ -39,6 +39,8 @@ from tests_common.test_utils.version_compat import AIRFLOW_V_3_3_PLUS
 if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
+    from airflow.executors.workloads import ExecuteCallback
+
 pytestmark = pytest.mark.db_test
 
 if AIRFLOW_V_3_3_PLUS:

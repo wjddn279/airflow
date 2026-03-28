@@ -212,6 +212,7 @@ class TestJobsApiRoutes:
             assert fetched_dag_ids == {"dag_a", "dag_b"}
 
 
+@pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="The tests should be skipped for Airflow < 3.3")
 class TestParseCommand:
     def _make_execute_task(self) -> ExecuteTask:
         ti = TaskInstanceDTO(

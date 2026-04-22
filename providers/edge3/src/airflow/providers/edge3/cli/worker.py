@@ -67,7 +67,8 @@ from airflow.utils.state import TaskInstanceState
 
 if TYPE_CHECKING:
     from airflow.configuration import AirflowConfigParser
-    from airflow.executors.workloads import ExecuteCallback, ExecuteTask
+    from airflow.executors.workloads import ExecuteTask
+    from airflow.providers.edge3.utils.types import ExecuteTypeBody
     from airflow.providers.edge3.worker_api.datamodels import EdgeJobFetched
 
 logger = logging.getLogger(__name__)
@@ -422,11 +423,12 @@ class EdgeWorker:
             return EdgeWorkerState.MAINTENANCE_MODE
         return EdgeWorkerState.IDLE
 
-    def _run_job_via_supervisor(self, workload: ExecuteTask, error_file_path: Path) -> int:
+    def _run_job_via_supervisor(self, workload: ExecuteTypeBody, error_file_path: Path) -> int:
         """Run a task by calling the supervisor directly (executes inside a forked child process)."""
         _reset_parent_signal_state()
 
         # Ignore ctrl-c in this process -- we don't want to kill _this_ one. we let tasks run to completion
+
         os.setpgrp()
 
         logger.info("Worker starting up pid=%d", os.getpid())
@@ -465,7 +467,7 @@ class EdgeWorker:
                 error_file_path.write_text(traceback.format_exc())
             return 1
 
-    def _launch_job_subprocess(self, workload: ExecuteTask) -> tuple[subprocess.Popen, Path]:
+    def _launch_job_subprocess(self, workload: ExecuteTypeBody) -> tuple[subprocess.Popen, Path]:
         """Launch workload via a fresh Python interpreter (subprocess.Popen)."""
         env = os.environ.copy()
         if self._execution_api_server_url:
@@ -504,7 +506,7 @@ class EdgeWorker:
         )
         return process, stderr_file_path
 
-    def _launch_job_fork(self, workload: ExecuteTask) -> tuple[Process, Path]:
+    def _launch_job_fork(self, workload: ExecuteTypeBody) -> tuple[Process, Path]:
         """Launch workload by forking the current process (multiprocessing.Process)."""
         # Improvement: Use frozen GC to prevent child process from copying unnecessary memory
         # See _spawn_workers_with_gc_freeze() in airflow-core/src/airflow/executors/local_executor.py
@@ -673,7 +675,7 @@ class EdgeWorker:
 
         logger.info("Received job: %s", edge_job.identifier)
 
-        workload: ExecuteTask | ExecuteCallback = edge_job.command
+        workload: ExecuteTypeBody = edge_job.command
         if TYPE_CHECKING:
             assert workload.log_path  # We need to assume this is defined in here
         logfile = Path(self.base_log_folder, workload.log_path)

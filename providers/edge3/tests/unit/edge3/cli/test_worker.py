@@ -430,6 +430,40 @@ class TestEdgeWorker:
         assert error_file_path.exists()
         assert "Supervise failed" in error_file_path.read_text()
 
+    @patch("airflow.sdk.execution_time.supervisor.supervise_task")
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="The tests should be skipped for Airflow < 3.3")
+    async def test_supervise_task_launch(
+        self,
+        mock_supervise_task,
+        worker_with_job: EdgeWorker,
+    ):
+        worker_with_job.__dict__["_execution_api_server_url"] = "https://mock-server/execution"
+        edge_job = worker_with_job.jobs.pop().edge_job
+        q = mock.MagicMock()
+        worker_with_job._run_job_via_supervisor(edge_job.command, q)
+
+        mock_supervise_task.assert_called_once()
+        q.put.assert_not_called()
+
+    @patch("airflow.sdk.execution_time.supervisor.supervise_task")
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="The tests should be skipped for Airflow < 3.3")
+    async def test_supervise_task_launch_fail(
+        self,
+        mock_supervise_task,
+        worker_with_job: EdgeWorker,
+    ):
+        mock_supervise_task.side_effect = Exception("Supervise failed")
+        worker_with_job.__dict__["_execution_api_server_url"] = "https://mock-server/execution"
+        edge_job = worker_with_job.jobs.pop().edge_job
+        q = mock.MagicMock()
+
+        result = worker_with_job._run_job_via_supervisor(edge_job.command, q)
+
+        assert result == 1
+        q.put.assert_called_once()
+
     @patch("airflow.providers.edge3.cli.worker.jobs_fetch")
     @patch("airflow.providers.edge3.cli.worker.EdgeWorker._launch_job")
     @pytest.mark.asyncio
@@ -1192,8 +1226,8 @@ class TestEdgeJobFetchedSerialization:
             command=MOCK_CALLBACK_COMMAND,  # type: ignore[arg-type]
         )
         serialized = fetched.model_dump_json()
-        deserialized = EdgeJobFetched.model_validate_json(serialized)
+        deserialized = EdgeJobFetched(**json.loads(serialized))
 
         assert deserialized.dag_id == "ExecuteCallback"
-        assert deserialized.command.type == ExecuteCallback.TYPE
+        assert deserialized.command.type == "ExecuteCallback"
         assert isinstance(deserialized.command, ExecuteCallback)

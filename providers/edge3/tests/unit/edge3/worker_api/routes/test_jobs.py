@@ -47,6 +47,7 @@ if AIRFLOW_V_3_3_PLUS:
     from airflow.executors.workloads import CallbackFetchMethod, ExecuteCallback, TaskInstanceDTO
     from airflow.executors.workloads.callback import CallbackDTO
 
+
 pytestmark = pytest.mark.db_test
 
 

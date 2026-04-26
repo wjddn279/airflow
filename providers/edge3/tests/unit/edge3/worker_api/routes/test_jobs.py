@@ -29,6 +29,7 @@ from airflow.executors.workloads import ExecuteTask
 from airflow.executors.workloads.base import BundleInfo
 from airflow.providers.common.compat.sdk import Stats
 from airflow.providers.edge3.models.edge_job import EdgeJobModel
+from airflow.providers.edge3.utils.types import EXECUTE_CALLBACK_TAG
 from airflow.providers.edge3.worker_api.datamodels import WorkerQueuesBody
 from airflow.providers.edge3.worker_api.routes.jobs import fetch, parse_command, state
 from airflow.utils.session import create_session
@@ -41,11 +42,13 @@ if TYPE_CHECKING:
 
     from airflow.executors.workloads import ExecuteCallback
 
-pytestmark = pytest.mark.db_test
 
 if AIRFLOW_V_3_3_PLUS:
     from airflow.executors.workloads import CallbackFetchMethod, ExecuteCallback, TaskInstanceDTO
     from airflow.executors.workloads.callback import CallbackDTO
+
+pytestmark = pytest.mark.db_test
+
 
 DAG_ID = "my_dag"
 TASK_ID = "my_task"
@@ -266,9 +269,9 @@ class TestParseCommand:
     def test_parse_command_execute_callback(self):
         workload = self._make_execute_callback()
         command_json = workload.model_dump_json()
-        # Mimic how edge_executor stores callback jobs
-        dag_id = ExecuteCallback.TYPE
-        run_id = f"ExecuteCallback-{workload.callback.key}"
+
+        dag_id = EXECUTE_CALLBACK_TAG
+        run_id = f"{EXECUTE_CALLBACK_TAG}-{workload.callback.key}"
 
         result = parse_command(command_json, dag_id=dag_id, run_id=run_id)
 
@@ -281,6 +284,6 @@ class TestParseCommand:
         workload = self._make_execute_task()
         command_json = workload.model_dump_json()
 
-        result = parse_command(command_json, dag_id="some_dag", run_id="ExecuteCallback-something")
+        result = parse_command(command_json, dag_id="some_dag", run_id=f"{EXECUTE_CALLBACK_TAG}-something")
 
         assert isinstance(result, ExecuteTask)

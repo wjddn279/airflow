@@ -49,6 +49,7 @@ from airflow.providers.edge3.models.edge_worker import (
     EdgeWorkerState,
     EdgeWorkerVersionException,
 )
+from airflow.providers.edge3.utils.types import EXECUTE_CALLBACK_TAG
 from airflow.providers.edge3.worker_api.datamodels import (
     EdgeJobFetched,
     WorkerRegistrationReturn,
@@ -1214,12 +1215,12 @@ class TestSignalHandling:
 class TestEdgeJobFetchedSerialization:
     """Test that EdgeJobFetched serializes and deserializes with both ExecuteTask and ExecuteCallback."""
 
-    @pytest.mark.skipif(not AIRFLOW_V_3_2_PLUS, reason="The tests should be skipped for Airflow < 3.2")
+    @pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="The tests should be skipped for Airflow < 3.3")
     def test_serialize_with_execute_callback(self):
         fetched = EdgeJobFetched(
-            dag_id="ExecuteCallback",
+            dag_id=EXECUTE_CALLBACK_TAG,
             task_id="12345678-1234-5678-1234-567812345678",
-            run_id="ExecuteCallback-12345678-1234-5678-1234-567812345678",
+            run_id=f"{EXECUTE_CALLBACK_TAG}-12345678-1234-5678-1234-567812345678",
             map_index=-1,
             try_number=0,
             concurrency_slots=1,
@@ -1228,6 +1229,6 @@ class TestEdgeJobFetchedSerialization:
         serialized = fetched.model_dump_json()
         deserialized = EdgeJobFetched(**json.loads(serialized))
 
-        assert deserialized.dag_id == "ExecuteCallback"
-        assert deserialized.command.type == "ExecuteCallback"
+        assert deserialized.dag_id == EXECUTE_CALLBACK_TAG
+        assert deserialized.command.type == EXECUTE_CALLBACK_TAG
         assert isinstance(deserialized.command, ExecuteCallback)

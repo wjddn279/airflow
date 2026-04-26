@@ -42,4 +42,4 @@ def is_callback_execute(workload: workloads.All) -> TypeGuard[ExecuteCallback]:
 
 
 # Do not modify it,
-EXECUTE_CALLBACK_PREFIX = "execute_callback"
+EXECUTE_CALLBACK_TAG = "ExecuteCallback"

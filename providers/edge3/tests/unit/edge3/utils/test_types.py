@@ -25,9 +25,9 @@ from pydantic import TypeAdapter
 from airflow.executors.workloads import BundleInfo, ExecuteTask
 from airflow.providers.edge3.utils.types import ExecuteTypeBody, is_callback_execute
 
-from tests_common.test_utils.version_compat import AIRFLOW_V_3_2_PLUS
+from tests_common.test_utils.version_compat import AIRFLOW_V_3_3_PLUS
 
-if AIRFLOW_V_3_2_PLUS:
+if AIRFLOW_V_3_3_PLUS:
     from airflow.executors.workloads import CallbackFetchMethod, ExecuteCallback, TaskInstanceDTO
     from airflow.executors.workloads.callback import CallbackDTO
 
@@ -72,7 +72,7 @@ def _make_execute_callback() -> ExecuteCallback:
     )
 
 
-@pytest.mark.skipif(not AIRFLOW_V_3_2_PLUS, reason="ExecuteTypeBody union requires Airflow 3.2+")
+@pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="ExecuteTypeBody union requires Airflow 3.3+")
 class TestIsCallbackExecute:
     def test_returns_false_for_execute_task(self):
         workload = _make_execute_task()
@@ -83,7 +83,7 @@ class TestIsCallbackExecute:
         assert is_callback_execute(workload) is True
 
 
-@pytest.mark.skipif(not AIRFLOW_V_3_2_PLUS, reason="ExecuteTypeBody union requires Airflow 3.2+")
+@pytest.mark.skipif(not AIRFLOW_V_3_3_PLUS, reason="ExecuteTypeBody union requires Airflow 3.3+")
 class TestExecuteTypeBody:
     def setup_method(self):
         self.adapter: TypeAdapter = TypeAdapter(ExecuteTypeBody)

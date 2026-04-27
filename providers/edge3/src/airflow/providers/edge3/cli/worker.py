@@ -68,7 +68,7 @@ from airflow.utils.state import TaskInstanceState
 if TYPE_CHECKING:
     from airflow.configuration import AirflowConfigParser
     from airflow.executors.workloads import ExecuteTask
-    from airflow.providers.edge3.utils.types import ExecuteTypeBody
+    from airflow.providers.edge3.models.types import ExecuteTypeBody
     from airflow.providers.edge3.worker_api.datamodels import EdgeJobFetched
 
 logger = logging.getLogger(__name__)

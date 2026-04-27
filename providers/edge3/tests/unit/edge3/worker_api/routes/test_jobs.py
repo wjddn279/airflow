@@ -29,7 +29,7 @@ from airflow.executors.workloads import ExecuteTask
 from airflow.executors.workloads.base import BundleInfo
 from airflow.providers.common.compat.sdk import Stats
 from airflow.providers.edge3.models.edge_job import EdgeJobModel
-from airflow.providers.edge3.utils.types import EXECUTE_CALLBACK_TAG
+from airflow.providers.edge3.models.types import EXECUTE_CALLBACK_TAG
 from airflow.providers.edge3.worker_api.datamodels import WorkerQueuesBody
 from airflow.providers.edge3.worker_api.routes.jobs import fetch, parse_command, state
 from airflow.utils.session import create_session

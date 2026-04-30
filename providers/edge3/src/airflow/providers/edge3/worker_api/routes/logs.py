@@ -39,7 +39,7 @@ logs_router = AirflowRouter(tags=["Logs"], prefix="/logs")
 
 @cache
 @provide_session
-def _logfile_path(task: TaskInstanceKey, session=NEW_SESSION) -> str:
+def _logfile_path(task: TaskInstanceKey, session=NEW_SESSION) -> str | None:
     """Elaborate the (relative) path and filename to expect from task execution."""
     ti = TaskInstance.get_task_instance(
         dag_id=task.dag_id,
@@ -48,6 +48,9 @@ def _logfile_path(task: TaskInstanceKey, session=NEW_SESSION) -> str:
         map_index=task.map_index,
         session=session,
     )
+    # If task type is WorkloadCallback, TaskInstance doesn't exist
+    if ti is None:
+        return None
     if TYPE_CHECKING:
         assert ti
         assert isinstance(ti, TaskInstance)
@@ -70,7 +73,7 @@ def logfile_path(
     run_id: Annotated[str, WorkerApiDocs.run_id],
     try_number: Annotated[int, WorkerApiDocs.try_number],
     map_index: Annotated[int, WorkerApiDocs.map_index],
-) -> str:
+) -> str | None:
     """Elaborate the path and filename to expect from task execution."""
     task = TaskInstanceKey(
         dag_id=dag_id, task_id=task_id, run_id=run_id, try_number=try_number, map_index=map_index
@@ -119,7 +122,9 @@ def push_logs(
         dag_id=dag_id, task_id=task_id, run_id=run_id, try_number=try_number, map_index=map_index
     )
     base_log_folder = conf.get("logging", "base_log_folder", fallback="NOT AVAILABLE")
-    logfile_path = Path(base_log_folder, _logfile_path(task))
+    if not (relative_logfile_path := _logfile_path(task)):
+        return
+    logfile_path = Path(base_log_folder, relative_logfile_path)
     if not logfile_path.exists():
         new_folder_permissions = int(
             conf.get("logging", "file_task_handler_new_folder_permissions", fallback="0o775"), 8

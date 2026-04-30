@@ -225,7 +225,9 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                anyOf:
+                - type: string
+                - type: 'null'
                 title: Response Logfile Path
         '400':
           content:
